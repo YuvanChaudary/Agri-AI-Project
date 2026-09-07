@@ -1,129 +1,237 @@
-# Agri-AI — Intelligent Agricultural Decision Platform
+# Agri‑AI — Intelligent Agricultural Decision Platform
 
-![Agri-AI](frontend/src/assets/hero.png)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/Python-3.10%2B-%233776AB)](#) [![Status](https://img.shields.io/badge/status-active-success)](#)
 
-Agri-AI is a modular, production-ready platform that brings modern ML, explainability, and delivery mechanisms to agriculture. It provides advisory intelligence across market forecasting, soil analysis, crop recommendations, risk assessment, subsidy eligibility and profitability planning — with an approachable frontend, robust backend services, and reproducible training pipelines.
+A production‑grade, modular platform that brings machine learning, explainability and delivery mechanisms to agricultural decision-making. Agri‑AI delivers field‑ready advisory intelligence across market forecasting, soil analysis, crop recommendations, risk assessment, subsidy eligibility and profitability planning — with reproducible training pipelines, model registries, monitoring and low‑connectivity delivery adapters.
 
-If you'd like to visit the source repository or discuss collaboration, please email: yuvanchaudary2004@gmail.com
-
----
-
-## Highlights
-
-- Multi-model architecture: market forecasting, yield & soil analysis, risk & subsidy engines, crop intelligence and profitability calculators.
-- Explainability built-in (SHAP-based explainers and local/sample explanations).
-- Reproducible training pipelines and model registries.
-- Monitoring and drift detection for model health and data quality.
-- Delivery adapters: PDF reports, voice IVR, WhatsApp bot and offline caches for low-connectivity environments.
-- Full-stack demo with a Vite + React frontend and FastAPI-style services.
+Contact / Access
+- To request access, collaboration or a demo, email: yuvanchaudary2004@gmail.com
 
 ---
 
-## Project Composition (at a glance)
-
-- models/           — Trained models and model-serving components (market_price, risk_engine, soil_analysis, subsidy_eligibility, yield_forecast, crop_intelligence, profitability_engine)
-- models/shared/    — Shared libraries: agents, inference, delivery, orchestration, registry
-- api/              — Lightweight API adapters and microservices
-- frontend/         — Vite + React frontend (dashboard, charts, forms, explanation panels)
-- training/         — Training pipelines and scripts for each model
-- monitoring/       — Drift detectors and monitoring reports
-- explainability/   — SHAP explainers and explainability utilities
-- data_pipeline/    — Dataset preparation, certification and online feature push
-- docs/             — Dataset schema, generation rules, and API key notes
-- artifacts/        — Example artifacts, audit reports and freeze validation manifests
+Table of contents
+- Project snapshot
+- Architecture (high level)
+- Flow & sequence diagrams
+- Project structure (tree)
+- Setup & quickstart
+- Verification, testing & validation
+- Deployment (local / docker)
+- Contributing
+- License
 
 ---
 
-## Architecture Overview
+Project snapshot
 
-Agri-AI uses a modular microservice-style architecture where each domain (market, soil, risk, subsidy, yield) exposes a small inference service. A lightweight orchestrator routes requests and aggregates results for delivery. Explainability modules attach SHAP summaries and local explanations to improve transparency. Monitoring pipelines compute drift statistics and surface alerts for model degradation.
-
-For a full blueprint see: Architecture_Blueprint.md
+- Tech stack: Python 3.10+, FastAPI-style microservices, SHAP explainability, joblib/torch model artifacts, Vite + React frontend (TypeScript), Docker.
+- Key capabilities: market price forecasting, soil analysis (vision + features), yield forecasting, risk scoring, subsidy eligibility, profitability calculator, report delivery (PDF/IVR/WhatsApp).
+- Production features: model registry, calibration, monitoring (drift), explainability and offline delivery adapters.
 
 ---
 
-## Quickstart (Development)
+Architecture (high level)
 
-Requirements:
+This section describes the main components, responsibilities and data flow.
+
+```mermaid
+flowchart LR
+  subgraph On-Prem / Cloud
+    U[Farmer / Agent] -->|web/voice/whatsapp| FE(Frontend)
+    FE --> API[Gateway / Orchestrator]
+    API --> M1[Market Price Service]
+    API --> S1[Soil Analysis Service]
+    API --> R1[Risk Engine]
+    API --> Y1[Yield Forecast]
+    API --> Sub[Subsidy Eligibility]
+    API --> Prof[Profitability Engine]
+    M1 --> MR[Market Model Registry]
+    S1 --> SR[Soil Model Registry]
+    R1 --> RR[Risk Model Registry]
+    Sub --> SUBR[Subsidy Model Registry]
+    Prof --> PR[Profitability Registry]
+    subgraph Observability
+      M[Monitoring & Drift]
+      E[Explainability (SHAP)]
+    end
+    API --> M
+    M1 --> E
+    S1 --> E
+  end
+```
+
+Architecture notes
+- Each domain exposes a small inference service (models/*/*/api). A central orchestrator aggregates results and composes advisory responses.
+- Explainability modules attach SHAP summaries (global + local) to outputs for transparency.
+- Monitoring pipelines compute PSI/feature drift and surface alerts under monitoring/reports.
+
+---
+
+Flow diagrams
+
+1) End‑user request -> advisory flow
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant F as Frontend
+  participant O as Orchestrator
+  participant M as MarketSvc
+  participant S as SoilSvc
+  participant E as Explainability
+  participant D as Delivery
+
+  U->>F: Fill farmer profile / upload soil image
+  F->>O: POST /advisory (profile + image)
+  O->>M: /market_price/predict
+  O->>S: /soil_analysis/infer
+  M-->>O: market forecast + metadata
+  S-->>O: soil_report + metadata
+  O->>E: request explanations (shap)
+  E-->>O: explanation bundles
+  O->>D: prepare PDF / voice / whatsapp
+  D-->>U: deliver advisory
+```
+
+2) Training & registry lifecycle
+
+```mermaid
+flowchart TD
+  Data[Raw Data] --> Preprocess[Preprocessing]
+  Preprocess --> Train[Training Pipeline]
+  Train --> Eval[Evaluation & Audit]
+  Eval --> Registry[Model Registry]
+  Registry --> Serve[Deploy to Inference Service]
+  Serve --> Monitor[Monitoring & Drift Detection]
+  Monitor --> Alert[Alert / Retrain]
+```
+
+---
+
+Project structure (concise)
+
+- api/                       — API adapters and lightweight services
+- frontend/                  — Vite + React frontend (dashboard, charts, forms)
+- models/                    — Model serving code and artifacts
+  - market_price/
+  - soil_analysis/
+  - risk_engine/
+  - subsidy_eligibility/
+  - profitability_engine/
+  - crop_intelligence/
+  - shared/                  — shared code (agents, inference, delivery, orchestrator)
+- training/                  — Training pipelines & scripts
+- monitoring/                — Drift detectors, monitoring reports
+- explainability/            — SHAP explainers and utilities
+- data_pipeline/             — dataset generation, certification, feature pushers
+- docs/                      — dataset dictionary, schema & generation rules
+- artifacts/                 — example advisories, audit manifests
+- tests/                     — unit, integration and E2E specs
+
+A fuller tree is available in project_structure.txt and Architecture_Blueprint.md.
+
+---
+
+Setup & Quickstart (developer)
+
+Prerequisites
 - Python 3.10+
 - Node 18+
-- Poetry or pip + virtualenv
-- Docker (optional, for local composition)
+- Git
+- Docker & docker-compose (optional but recommended)
 
-1) Clone the repository
+Local virtualenv + backend
+
+1. Clone the repo
 
    git clone https://github.com/YuvanChaudary/Agri-AI.git
+   cd Agri-AI
 
-2) Backend: create a venv and install
+2. Create virtual environment and install
 
    python -m venv .venv
-   source .venv/bin/activate
+   source .venv/bin/activate  # Windows: .venv\Scripts\activate
    pip install -r requirements.txt
 
-3) Run a single model service (example: market price)
+3. Run a single model service (e.g., market_price)
 
    python models/market_price/api/main.py
 
-4) Run the frontend
+4. Frontend
 
    cd frontend
    npm install
    npm run dev
 
-5) Run the end-to-end demo (if available)
+5. End‑to‑end demo (if available)
 
    python run_e2e_demo.py
 
-For Docker-compose based local deployment:
+Docker (local compose)
+
+- Build and run full stack locally
 
    docker-compose up --build
 
----
-
-## Example API Endpoints
-
-- Market price prediction: POST /market_price/predict
-- Soil analysis inference: POST /soil_analysis/infer
-- Risk assessment: POST /risk_engine/predict
-- Subsidy eligibility: POST /subsidy_eligibility/predict
-
-Refer to api/ and models/*/api/ folders for concrete request/response schemas and examples.
+Environment variables
+- See docs/API_KEYS.txt and frontend README for any required API keys and service endpoints. Do not commit secrets to the repository.
 
 ---
 
-## Reproducible Training & Model Registry
+Verification, testing & validation
 
-Training pipelines and registration lives under training/ and models/*/registry. Artifacts, evaluation metrics and feature contracts are stored alongside models to help reproduce experiments. Use the provided training scripts to reproduce a model version and the registry writers to snapshot metadata.
+- Unit tests: run pytest
+- Frontend tests / E2E: check tests/ (Cypress / Playwright specs) — run via npm test / npm run e2e
+- Model validation: each model folder contains evaluation metrics and audit reports under *_artifacts* and *_registry*; use the training scripts in training/ to reproduce runs.
+- Drift & monitoring: monitoring/ contains PSI detectors and sample reports; use monitoring scripts to re-check production snapshots.
 
----
-
-## Explainability & Monitoring
-
-- SHAP explainers included in explainability/ and in model-specific explainability modules produce both global and local explanations.
-- monitoring/ contains drift detectors (PSI/feature drift) and monitoring dashboards.
-
----
-
-## Contributing
-
-Agri-AI is structured for extensibility. To contribute:
-
-1. Fork the repository
-2. Create a feature branch
-3. Run tests: pytest (or the appropriate test runner)
-4. Open a PR with a clear description and tests
-
-See CONTRIBUTING.md for more details (if created).
+Recommended verification checklist for releases
+1. Run unit tests: pytest -q
+2. Run model evaluation for each changed model and confirm metrics meet thresholds
+3. Run explainability snapshot (SHAP) and verify top features
+4. Run a smoke E2E demo and capture screenshots (helps for release notes)
 
 ---
 
-## License
+Stunning README extras (optional, recommended)
+- Add CI badges (GitHub Actions / Build / Coverage) for credibility
+- Embed screenshots or an animated GIF from tests/screenshots/ to showcase the UI
+- Add a short API example block (curl) for market price and soil inference
 
-This project is licensed under the MIT License — see LICENSE for details.
+Example API request (market price)
+
+```bash
+curl -X POST https://{API_HOST}/market_price/predict \
+  -H "Content-Type: application/json" \
+  -d '{"crop":"rice","location":"district-123","start_date":"2026-07-01"}'
+```
 
 ---
 
-## Contact
+Contributing
 
-If you'd like access to this repository, want to collaborate or demo the project, please email: yuvanchaudary2004@gmail.com
+We welcome improvements. Recommended flow:
+1. Fork the repo
+2. Create a feature branch: git checkout -b feat/awesome
+3. Run tests & linters
+4. Open a PR with a clear description, test cases and a screenshot (if applicable)
+
+Consider adding: CONTRIBUTING.md, CODE_OF_CONDUCT.md and a PR template for structured contributions.
+
+---
+
+License
+
+This project is licensed under the MIT License. See LICENSE for details.
+
+---
+
+Contact
+
+For access or collaboration: yuvanchaudary2004@gmail.com
+
+If you want, I can now:
+- Embed architecture & flow diagrams as PNGs (render mermaid to images) and place them under docs/ and reference them in the README.
+- Add CI badges and a release checklist.
+- Insert example request/response JSON payloads for the most-used endpoints.
 
