@@ -36,8 +36,8 @@ This section describes the main components, responsibilities and data flow.
 
 ```mermaid
 flowchart LR
-  subgraph On-Prem / Cloud
-    U[Farmer / Agent] -->|web/voice/whatsapp| FE(Frontend)
+  subgraph ONPREM_CLOUD["On‑Prem / Cloud"]
+    U[Farmer / Agent] -->|web / voice / whatsapp| FE[Frontend]
     FE --> API[Gateway / Orchestrator]
     API --> M1[Market Price Service]
     API --> S1[Soil Analysis Service]
@@ -50,9 +50,9 @@ flowchart LR
     R1 --> RR[Risk Model Registry]
     Sub --> SUBR[Subsidy Model Registry]
     Prof --> PR[Profitability Registry]
-    subgraph Observability
+    subgraph OBSERVABILITY["Observability"]
       M[Monitoring & Drift]
-      E[Explainability (SHAP)]
+      E[Explainability - SHAP]
     end
     API --> M
     M1 --> E
@@ -231,7 +231,6 @@ Contact
 For access or collaboration: yuvanchaudary2004@gmail.com
 
 If you want, I can now:
-- Embed architecture & flow diagrams as PNGs (render mermaid to images) and place them under docs/ and reference them in the README.
-- Add CI badges and a release checklist.
-- Insert example request/response JSON payloads for the most-used endpoints.
-
+- Render the Mermaid diagrams to SVG/PNG and add them to docs/ (visuals for the README)
+- Add CI badges and a release checklist
+- Insert example request/response JSON payloads for the most-used endpoints
